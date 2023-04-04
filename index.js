@@ -1,6 +1,5 @@
 const express = require('express');
 const rateLimit  = require('express-rate-limit');
-const { MemoryStore } = require('express-rate-limit');
 const {errorMiddleware} = require('./middleware/errors');
 const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
@@ -24,9 +23,9 @@ mongoose.connect(process.env.DB_URI)
 // Applying Global Rate Limiter
 const limiter = rateLimit({
 	windowMs: 5 * 60 * 1000, // 5 minutes
-	max: 25,
+	max: 100,
 	standardHeaders: true,
-	store: new MemoryStore(),
+	legacyHeaders: false
 });
 app.use(limiter);
 
