@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
-
+const bcrypt = require("bcrypt");
+const UserModel = require("../models/userModel");
 
 const home = async (req,res,next) => {
     const data = {message:"Hello"};
@@ -10,81 +11,56 @@ const home = async (req,res,next) => {
     }
 }
 
-const userCredentials = {
-    username: 'admin',
-    password: 'admin123',
-    email: 'admin@gmail.com'
-}
-
 const login = async (req, res) => {
     // Destructuring username & password from body
-    const { username, password } = req.body;
-
-    // Checking if credentials match
-    if (username === userCredentials.username && 
-        password === userCredentials.password) {
-        
+    let { email, password } = req.body;
+    email = email.toLowerCase();
+    const user = await UserModel.findOne({ email });
+    if (!user) throw new Error("No user found!");
+    if (!user.verify) throw new Error("User Not Verified");
+    const result = await bcrypt.compare(password, user.password);
+    if (!result) throw new Error("Invalid credentials!");
+    else{
         //creating a access token
-        const accessToken = jwt.sign({
-            username: userCredentials.username,
-            email: userCredentials.email
-        }, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: '10m'
-        });
+
+        const accessToken = createAccessToken({ id: user._id });
         // Creating refresh token not that expiry of refresh 
         //token is greater than the access token
         
         const refreshToken = jwt.sign({
-            username: userCredentials.username,
-        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+            email: email,
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
 
-        // Assigning refresh token in http-only cookie 
-        res.cookie('jwt', refreshToken, { httpOnly: true, 
-            sameSite: 'None', secure: true, 
-            maxAge: 24 * 60 * 60 * 1000 });
-        return res.json({ accessToken });
-    }
-    else {
-        // Return unauthorized error if credentials don't match
-        return res.status(406).json({ 
-            message: 'Invalid credentials' });
+        
+        return res.json({success:true, accessToken , refreshToken});
     }
 }
 
-const refresh = async (req, res) => {
-    if (req.cookies?.jwt) {
+ const refreshToken=  (req, res) => {
+    try {
+      const rf_token = req.body.refreshtoken;
+      if (!rf_token)
+        return res.status(400).json({ msg: "Please Login or Register" });
 
-        // Destructuring refreshToken from cookie
-        const refreshToken = req.cookies.jwt;
+      jwt.verify(rf_token, process.env.JWT_REFRESH_KEY, (err, user) => {
+        if (err) return res.status(400).json({ msg: "Please Login or Register" });
 
-        // Verifying refresh token
-        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, 
-        (err, decoded) => {
-            if (err) {
+        const accesstoken = createAccessToken({ id: user.id });
 
-                // Wrong Refesh Token
-                return res.status(406).json({ message: 'Unauthorized' });
-            }
-            else {
-                // Correct token we send a new access token
-                const accessToken = jwt.sign({
-                    username: userCredentials.username,
-                    email: userCredentials.email
-                }, process.env.ACCESS_TOKEN_SECRET, {
-                    expiresIn: '10m'
-                });
-                return res.json({ accessToken });
-            }
-        })
-    } else {
-        return res.status(406).json({ message: 'Unauthorized' });
+        res.json({ accesstoken });
+      });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
     }
-}
+ }
 
 
+const createAccessToken = (user) => {
+    return jwt.sign(user, process.env.AJWT_ACCESS_KEY, { expiresIn: "1d" });
+  };
 
 module.exports = {
     home,
     login,
-    refresh
+    refreshToken
 }

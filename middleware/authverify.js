@@ -6,7 +6,7 @@ const auth = (req, res, next) => {
     // console.log(token);
     if (!token) return res.status(401).json({ msg: "Please login before proceeding any further !" });
     token = token.replace(/^Bearer\s+/, "");
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    jwt.verify(token, process.env.JWT_ACCESS_KEY, (err, user) => {
       if (err) return res.status(402).json({ msg: "Invalid Authentication" });
 
       req.user = user;
