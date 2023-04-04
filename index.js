@@ -1,6 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const {errorMiddleware} = require('./middleware/errors');
+const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cors=require('cors');
@@ -30,3 +31,6 @@ app.use(limiter);
 
 // Global Error Handling
 app.use(errorMiddleware);
+
+// Routes
+app.use('/api/',authRoutes);
