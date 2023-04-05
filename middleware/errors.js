@@ -5,13 +5,16 @@ class ErrorHandler extends Error {
     }
 }
 
-module.exports = { errorMiddleware : (err,req,res,next) => {
-    err.message = err.message || "Interal Server Error";
-    err.statusCode = err.statusCode || 500;
+module.exports = {
+    errorMiddleware : (err,req,res,next) => {
+        err.message = err.message || "Interal Server Error";
+        err.statusCode = err.statusCode || 500;
+        console.log(err);
 
-    return res.status(err.statusCode).json({
-        success:false,
-        message: err.message
-    });
-}
+        return res.status(err.statusCode).json({
+            success:false,
+            msg: err.message
+        });
+    },
+    ErrorHandler
 }
