@@ -36,4 +36,4 @@ app.use(limiter);
 app.use(errorMiddleware);
 
 // Routes
-app.use('/api/',authRoutes);
+app.use('/api/',authRoutes,errorMiddleware);
