@@ -21,7 +21,7 @@ const userSchema = mongoose.Schema({
   },
   POR:{
     type:String,
-    enum:['HOSTEL']
+    enum:['HOSTEL','DAYSCHOLAR']
   },
   email: {
     type: String,

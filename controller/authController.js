@@ -9,7 +9,7 @@ const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 
 const home = async (req,res,next) => {
-    const data = {msg:"Samriddhi Prawah!"};
+    const data = {msg:"Samriddhi Prawah!",pid:`${process.pid}`};
     try {
         res.json(data);
     } catch (err) {
