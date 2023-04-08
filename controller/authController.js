@@ -86,7 +86,7 @@ const email = async (req,res,next) => {
             lowerCaseAlphabets: false
         });
 
-        //const result = mailer.sendmail(email,mailedOTP);
+        const result = mailer.sendmail(email,mailedOTP);
         
         const oldotp = await Otp.findOne({email});
 
