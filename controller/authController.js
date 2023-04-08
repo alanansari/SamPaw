@@ -9,7 +9,7 @@ const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 
 const home = async (req,res,next) => {
-    const data = {msg:"Samriddhi Prawah!"};
+    const data = {msg:"Samriddhi Prawah!",pid:`${process.pid}`};
     try {
         res.json(data);
     } catch (err) {
@@ -86,16 +86,25 @@ const email = async (req,res,next) => {
             lowerCaseAlphabets: false
         });
 
-        const result = await mailer.sendmail(email,mailedOTP);
+        //const result = mailer.sendmail(email,mailedOTP);
         
-        const oldotp = await Otp.updateOne({email},{
-            $set:{
-              otp:mailedOTP
-            }
-        });
+        const oldotp = await Otp.findOne({email});
 
-        if(oldotp.modifiedCount==0){
-            await Otp.create({
+        if(oldotp){
+            let dateNow = new Date();
+            dateNow = dateNow.getTime()/1000;
+            let otpDate = new Date(oldotp.updatedAt);
+            otpDate = otpDate.getTime()/1000;
+            console.log(dateNow,otpDate)
+            if(dateNow<otpDate+10)
+            return next(new ErrorHandler(400,"Wait for 10 seconds to resend mail."));
+        }
+
+        if(oldotp){
+            oldotp.otp = mailedOTP;
+            await oldotp.save();
+        }else{
+            Otp.create({
                 email:email.toLowerCase(),
                 otp : mailedOTP
             });
@@ -188,7 +197,7 @@ const signup = async (req,res,next)=>{
         const refreshToken = jwt.sign({
             email: email,
         }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
-        return res.status(200).json({success:true,msg:`Welcome to tweeter, ${user.name}!`,user:madeuser,refreshToken,accessToken});
+        return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${user.name}!`,user:madeuser,refreshToken,accessToken});
         
     } catch (err) {
         next(err);

@@ -10,7 +10,7 @@ const otpSchema = mongoose.Schema({
     type: String,
     required: true
   }
-},{timestamps: true});
+},{ timestamps: true });
 
 otpSchema.index({createdAt: 1},{expireAfterSeconds: 300});
 
