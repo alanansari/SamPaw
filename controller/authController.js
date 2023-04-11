@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 const otpGenerator = require('otp-generator');
-const mailer = require("../middleware/mailer");
+const mailer = require("../utils/mailer");
 require('dotenv').config();
 const User = require("../models/UserModel");
 const Otp = require("../models/OtpModel");
@@ -29,7 +29,7 @@ const refreshToken =  (req, res,next) => {
             return next(new ErrorHandler(400,"Please Login or Register"));
 
         jwt.verify(rf_token, process.env.JWT_REFRESH_KEY, (err, user) => {
-            if (err) return next(new ErrorHandler(400,"Please Login or Register"));
+            if (err) return next(new ErrorHandler(401,"Invalid Authentication"));
 
             const accesstoken = createAccessToken({ id: user.id });
 
@@ -127,12 +127,16 @@ const everify = async (req,res,next) => {
         const otpdb = await Otp.findOne({
             email:email.toLowerCase()
         });
-        if(!otpdb)
+        if(!otpdb||(otpdb&&otpdb.used))
             return next(new ErrorHandler(400,"Otp expired."));
+    
         if(otpdb.otp!=otp){
             console.log(otpdb.otp,otp);
             return next(new ErrorHandler(400,"Incorrect Otp"));
         }
+        Otp.updateOne({email:email.toLowerCase},{
+            used:true
+        });
         const prev = await User.findOne({
             email:email.toLowerCase()
         })
@@ -144,8 +148,8 @@ const everify = async (req,res,next) => {
         }else{
             user = prev;
         }
-        
-        const token = jwt.sign({_id:user._id},process.env.JWT_TOKEN,{expiresIn:'10m'});
+        console.log(user);
+        const token = jwt.sign({_id:user._id},process.env.JWT_TOKEN,{expiresIn:'30m'});
         if(user)
             return res.status(200).json({success:true,msg:'OTP Verified.',token});
         
@@ -164,40 +168,45 @@ const signup = async (req,res,next)=>{
             course,
             branch,
             POR,
-            password
+            password,
+            phone_no
         } = req.body;
 
-        const user = req.user;
+        let user = req.user;
         if(user.verify==true)
             return next(new ErrorHandler(400,"Account already made"));
-        if (!(name&&student_no&&year&&branch&&POR&&password)) {
+        if (!(name&&student_no&&year&&branch&&POR&&password&&phone_no)) {
           return next(new ErrorHandler(400,"All input fields are required."));
         }
 
         if(!validatepass(password)){
           return next(new ErrorHandler(400,"Incorrect Password Format"));
         }
+
+        if(phone_no.length<10||!(phone_no.match(/^[0-9]+$/))){
+            return next(new ErrorHandler(400,"Invalid phone number"));
+        }
         
         const encryptedPassword = await bcrypt.hash(password, 12);
         
-        await User.updateOne({email:user.email},{
-            name,
-            student_no,
-            year,
-            course,
-            branch,
-            POR,
-            password:encryptedPassword,
-            verify:true
-        });
+        user.name = name;
+        user.student_no = student_no,
+        user.year = year;
+        user.course = course;
+        user.branch = branch;
+        user.POR = POR;
+        user.password = encryptedPassword;
+        user.phone_no = phone_no;
+        user.verify = true;
 
-        let madeuser = await User.findById(user._id);
+        user = await user.save();
+
         const accessToken = createAccessToken({ id: user._id });
         
         const refreshToken = jwt.sign({
-            email: email,
-        }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
-        return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${user.name}!`,user:madeuser,refreshToken,accessToken});
+            id: user._id,
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: '7d' });
+        return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${name}!`,user,refreshToken,accessToken});
         
     } catch (err) {
         next(err);
