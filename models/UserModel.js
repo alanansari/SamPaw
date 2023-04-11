@@ -35,7 +35,9 @@ const userSchema = mongoose.Schema({
     type:Boolean,
     default:false
   },
-  
+  phone_no:{
+    type:String
+  }
 });
 
 const UserModel = mongoose.model("user",userSchema);

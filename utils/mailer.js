@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 
 const sendmail = async (email,otp) => {
+  try{
     const msg = {
         from: 'Samriddhi Pravah"spaces.inc.si@gmail.com"',
         to: email,
@@ -37,6 +38,9 @@ const sendmail = async (email,otp) => {
           return true;
         }
     });
+  }catch(err){
+    return next(err);
+  }
 }
 
 module.exports = {sendmail};

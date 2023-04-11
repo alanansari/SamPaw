@@ -9,6 +9,10 @@ const otpSchema = mongoose.Schema({
   otp:{
     type: String,
     required: true
+  },
+  used:{
+    type: Boolean,
+    default: false
   }
 },{ timestamps: true });
 
