@@ -17,7 +17,6 @@ const home = async (req,res,next) => {
     }
 }
 
-
 const createAccessToken = (user) => {
     return jwt.sign(user, process.env.JWT_ACCESS_KEY, { expiresIn: "1d" });
 };
@@ -56,7 +55,7 @@ const login = async (req, res, next) => {
         const accessToken = createAccessToken({ id: user._id });
         
         const refreshToken = jwt.sign({
-            email: email,
+            id: user._id,
         }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
         return res.status(200).json({success:true, accessToken , refreshToken});
     }catch(err){
@@ -163,6 +162,7 @@ const signup = async (req,res,next)=>{
     try{
         const {
             name,
+            gender,
             student_no,
             year,
             course,
@@ -175,7 +175,7 @@ const signup = async (req,res,next)=>{
         let user = req.user;
         if(user.verify==true)
             return next(new ErrorHandler(400,"Account already made"));
-        if (!(name&&student_no&&year&&branch&&POR&&password&&phone_no)) {
+        if (!(name&&student_no&&year&&branch&&POR&&password&&phone_no&&gender)) {
           return next(new ErrorHandler(400,"All input fields are required."));
         }
 
@@ -197,6 +197,7 @@ const signup = async (req,res,next)=>{
         user.POR = POR;
         user.password = encryptedPassword;
         user.phone_no = phone_no;
+        user.gender = gender;
         user.verify = true;
 
         user = await user.save();
@@ -213,6 +214,14 @@ const signup = async (req,res,next)=>{
     }
 }
 
+const getUser = async (req,res,next) => {
+    try {
+        const user = req.user;
+        return res.status(200).json({success:true,user});
+    } catch (err) {
+        next(err);
+    }
+}
 
 module.exports = {
     home,
@@ -220,5 +229,6 @@ module.exports = {
     login,
     email,
     everify,
-    signup
+    signup,
+    getUser
 }

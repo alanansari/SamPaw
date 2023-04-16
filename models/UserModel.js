@@ -4,6 +4,10 @@ const userSchema = mongoose.Schema({
   name:{
     type: String
   },
+  gender:{
+    type:String,
+    enum:['MALE','FEMALE','OTHERS']
+  },
   student_no:{
     type: Number
   },
@@ -36,7 +40,12 @@ const userSchema = mongoose.Schema({
     default:false
   },
   phone_no:{
-    type:String
+    type:String,
+    default:'0000000000'
+  },
+  phoneVerification:{
+    type:Boolean,
+    default:false
   }
 });
 
