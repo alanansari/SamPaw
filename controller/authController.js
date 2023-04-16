@@ -30,7 +30,7 @@ const refreshToken =  (req, res,next) => {
         jwt.verify(rf_token, process.env.JWT_REFRESH_KEY, (err, user) => {
             if (err) return next(new ErrorHandler(401,"Invalid Authentication"));
 
-            const accesstoken = createAccessToken({ id: user.id });
+            const accesstoken = createAccessToken({ id: user._id });
 
             return res.status(200).json({ accesstoken });
         });
@@ -133,9 +133,8 @@ const everify = async (req,res,next) => {
             console.log(otpdb.otp,otp);
             return next(new ErrorHandler(400,"Incorrect Otp"));
         }
-        Otp.updateOne({email:email.toLowerCase},{
-            used:true
-        });
+        otpdb.used=true;
+        await otpdb.save();
         const prev = await User.findOne({
             email:email.toLowerCase()
         })
@@ -223,6 +222,143 @@ const getUser = async (req,res,next) => {
     }
 }
 
+const forgotEmail = async (req,res,next) => {
+    try {
+        const {email} = req.body;
+
+        if(!email)
+            return next(new ErrorHandler(400,"Email Required."));
+        if(!validatemail(email))
+            return next(new ErrorHandler(406,"Incorrect Email format."));
+
+        const oldUser = await User.findOne({
+            email:email.toLowerCase()
+        });
+
+        if(!oldUser)
+            return next(new ErrorHandler(400,"User by this email does not exist"));
+
+        const mailedOTP = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            specialChars: false,
+            lowerCaseAlphabets: false
+        });
+
+        const result = mailer.sendmail(email,mailedOTP);
+        
+        const oldotp = await Otp.findOne({email});
+        console.log(oldotp);
+        
+        if(oldotp.used==true)
+        return next(new ErrorHandler(400,"Please wait 1 minute to use forget password"));
+
+        if(oldotp){
+            let dateNow = new Date();
+            dateNow = dateNow.getTime()/1000;
+            let otpDate = new Date(oldotp.updatedAt);
+            otpDate = otpDate.getTime()/1000;
+            console.log(dateNow,otpDate)
+            if(dateNow<otpDate+10)
+            return next(new ErrorHandler(400,"Wait for 10 seconds to resend mail."));
+        }
+
+        if(oldotp){
+            oldotp.otp = mailedOTP;
+            await oldotp.save();
+        }else{
+            Otp.create({
+                email:email.toLowerCase(),
+                otp : mailedOTP
+            });
+        }
+        return res.status(200).json({success:true,msg:`OTP sent on ${email}`});
+    } catch (err) {
+        next(err);
+    }
+}
+
+const forgotVerify = async (req,res,next) => {
+    try {
+        const {email,otp} = req.body;
+        if(!email){
+            return next(new ErrorHandler(400,"Email Required."));
+        }
+        if (!otp) {
+            return next(new ErrorHandler(400,"Otp Required."));
+        }
+
+        if(!validatemail(email))
+        return next(new ErrorHandler(406,"Incorrect Email format."));
+
+        const otpdb = await Otp.findOne({
+            email:email.toLowerCase()
+        });
+        if(!otpdb||(otpdb&&otpdb.used))
+            return next(new ErrorHandler(400,"Otp expired."));
+    
+        if(otpdb.otp!=otp){
+            console.log(otpdb.otp,otp);
+            return next(new ErrorHandler(400,"Incorrect Otp"));
+        }
+        otpdb.used=true;
+        console.log(1234,otpdb);
+        await otpdb.save();
+        const prev = await User.findOne({
+            email:email.toLowerCase()
+        })
+        let user;
+        user = prev;
+        console.log(user);
+        const token = jwt.sign({_id:user._id},process.env.JWT_TOKEN,{expiresIn:'30m'});
+        if(user)
+            return res.status(200).json({success:true,msg:'OTP Verified.',token});
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+const ChangePassword = async (req,res,next)=>{
+    try{
+        const {
+            email,
+           newpassword
+        } = req.body;
+
+        let user = req.user;
+        if(user.verify!=true)
+            return next(new ErrorHandler(400,"User Not Verified"));
+        if (!(email&&newpassword)) {
+          return next(new ErrorHandler(400,"All input fields are required."));
+        }
+
+        if(!validatepass(newpassword)){
+          return next(new ErrorHandler(400,"Incorrect Password Format"));
+        }
+
+        if(!validatemail(email))
+        return next(new ErrorHandler(406,"Incorrect Email format."));
+    
+        
+        const encryptedPassword = await bcrypt.hash(newpassword, 12);
+        
+        
+        user.password = encryptedPassword;
+        
+        user = await user.save();
+
+        const accessToken = createAccessToken({ id: user._id });
+        
+        const refreshToken = jwt.sign({
+            id: user._id,
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: '7d' });
+        return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${user.name}!`,user,refreshToken,accessToken});
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     home,
     refreshToken,
@@ -230,5 +366,8 @@ module.exports = {
     email,
     everify,
     signup,
-    getUser
+    getUser,
+    forgotEmail,
+    forgotVerify,
+    ChangePassword
 }
