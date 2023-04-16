@@ -85,7 +85,7 @@ const email = async (req,res,next) => {
             lowerCaseAlphabets: false
         });
 
-        const result = mailer.sendmail(email,mailedOTP);
+        mailer.sendmail(email,mailedOTP);
         
         const oldotp = await Otp.findOne({email});
 
@@ -96,14 +96,11 @@ const email = async (req,res,next) => {
             otpDate = otpDate.getTime()/1000;
             console.log(dateNow,otpDate)
             if(dateNow<otpDate+10)
-            return next(new ErrorHandler(400,"Wait for 10 seconds to resend mail."));
-        }
-
-        if(oldotp){
+                return next(new ErrorHandler(400,"Wait for 10 seconds to resend mail."));
             oldotp.otp = mailedOTP;
             await oldotp.save();
         }else{
-            Otp.create({
+            await Otp.create({
                 email:email.toLowerCase(),
                 otp : mailedOTP
             });
