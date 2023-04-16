@@ -241,13 +241,9 @@ const forgotEmail = async (req,res,next) => {
             lowerCaseAlphabets: false
         });
 
-        const result = mailer.sendmail(email,mailedOTP);
+        mailer.sendmail(email,mailedOTP);
         
         const oldotp = await Otp.findOne({email});
-        console.log(oldotp);
-        
-        if(oldotp.used==true)
-        return next(new ErrorHandler(400,"Please wait 1 minute to use forget password"));
 
         if(oldotp){
             let dateNow = new Date();
