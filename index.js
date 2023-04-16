@@ -8,6 +8,7 @@ const cors=require('cors');
 const cookieparser = require('cookie-parser');
 const cluster = require('cluster');
 const os = require('os');
+const status = require('express-status-monitor');
 
 const totalCPUs = os.cpus().length;
 
@@ -38,6 +39,9 @@ if (cluster.isPrimary) {
 	.catch((err)=>{
 		console.log(err);
 	});
+
+	// status monitor
+	app.use(status());
 
 	// Applying Global Rate Limiter
 	const limiter = rateLimit({

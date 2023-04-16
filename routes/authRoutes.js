@@ -4,6 +4,7 @@ const authController = require('../controller/authController');
 const authverify = require('../middleware/authverify')
 
 router.get('/home',authController.home);
+router.get('/user',authverify.auth,authController.getUser);
 router.post('/login',authController.login);
 router.post('/refresh',authController.refreshToken);
 router.post('/email',authController.email);

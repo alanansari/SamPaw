@@ -8,10 +8,14 @@ const auth = (req, res, next) => {
     // console.log(token);
     if (!token) return res.status(401).json({ msg: "Please Login or Signup" });
     token = token.replace(/^Bearer\s+/, "");
-    jwt.verify(token, process.env.JWT_ACCESS_KEY, (err, user) => {
-      if (err) return res.status(401).json({ msg: "Invalid Authentication" });
-
-      req.user = user;
+    jwt.verify(token, process.env.JWT_ACCESS_KEY, async (err, payload) => {
+      if(err){
+        return next(new ErrorHandler(401,"Invalid Authentication")); 
+      }
+      const {id}=payload;
+      const user = await User.findById(id);
+      if(!user) next(new ErrorHandler(401,"Invalid Authentication"));
+      req.user=user;
       next();
     })
   } catch (err) {
