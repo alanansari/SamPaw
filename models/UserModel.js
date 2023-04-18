@@ -21,11 +21,11 @@ const userSchema = mongoose.Schema({
   },
   branch:{
     type: String,
-    enum:['CSE','CS','CSIT','IT','AIML','CSE-AIML','CSE-DS','EN','MECH','CIVIL']
+    enum:['CSE','CS','CSIT','IT','AIML','CSE-AIML','CSE-DS','EN','MECH','CIVIL','ECE','CSE-HINDI']
   },
   POR:{
     type:String,
-    enum:['HOSTEL','DAYSCHOLAR']
+    enum:['BH1','BH2','BH3','GH1','GH2','GH3','DAYSCHOLAR']
   },
   email: {
     type: String,
