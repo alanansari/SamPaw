@@ -1,5 +1,5 @@
 function validatepass(password){
-    let pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\/%*?&])[A-Za-z\d@\/$!%*?&]{8,}$/;
+    let pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!#%*?&])[A-Za-z\d@#$!%*?&]{8,}$/;
     result = pattern.test(password);
     return result;
 }

@@ -2,6 +2,7 @@ const express = require('express');
 const rateLimit  = require('express-rate-limit');
 const {errorMiddleware} = require('./middleware/errors');
 const authRoutes = require('./routes/authRoutes');
+const homeRoutes = require('./routes/homeRoutes');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cors=require('cors');
@@ -9,8 +10,10 @@ const cookieparser = require('cookie-parser');
 const cluster = require('cluster');
 const os = require('os');
 const status = require('express-status-monitor');
+const fileUpload = require('express-fileupload')
 
 const totalCPUs = os.cpus().length;
+
 
 if (cluster.isPrimary) {
 	console.log(`Primary ${process.pid} is running`);
@@ -25,6 +28,11 @@ if (cluster.isPrimary) {
 	});
 } else {
 	const app = express();
+	app.use(fileUpload({
+		useTempFiles:true,
+		limits:{fileSize: 5*1024*1024}
+	  }));
+	
 	app.use(express.json());
 	app.use(cors({origin:true}));
 	app.use(express.urlencoded({ extended: false }));
@@ -57,5 +65,6 @@ if (cluster.isPrimary) {
 
 	// Routes
 	app.use('/api/',authRoutes,errorMiddleware);
+	app.use('/api/home',homeRoutes,errorMiddleware);
 }
 
