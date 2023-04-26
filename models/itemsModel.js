@@ -10,6 +10,11 @@ const itemSchema = mongoose.Schema({
   }],
   description:{
     type:String
+  },
+  status:{
+    type:String,
+    enum:['PENDING','APPROVED','REJECTED'],
+    default:'PENDING'
   }
 });
 
