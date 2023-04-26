@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const itemSchema = mongoose.Schema({
   name:{
     type: String,
-    required: true
+    // required: true
   },
   images:[{
     type: String
   }],
-  decription:{
+  description:{
     type:String
   }
 });
