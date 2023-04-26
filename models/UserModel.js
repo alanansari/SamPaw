@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { ObjectId } = require("mongodb");
 
 const userSchema = mongoose.Schema({
   name:{
@@ -46,7 +47,11 @@ const userSchema = mongoose.Schema({
   phoneVerification:{
     type:Boolean,
     default:false
-  }
+  },
+  items:[{
+    type: ObjectId,
+    ref:'item'
+  }]
 });
 
 const UserModel = mongoose.model("user",userSchema);
