@@ -23,8 +23,7 @@
     "mongoose": "^7.0.3",
     "nodemailer": "^6.9.1",
     "otp-generator": "^4.0.1",
-    "redis": "^4.6.5",
-    "twilio": "^4.10.0"
+    "redis": "^4.6.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

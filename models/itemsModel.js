@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
-
+const { ObjectId } = require("mongodb");
 const itemSchema = mongoose.Schema({
+  user:{
+    type:ObjectId,
+    ref:'user'
+  },
   name:{
-    type: String,
-    // required: true
+    type: String
   },
   images:[{
     type: String
