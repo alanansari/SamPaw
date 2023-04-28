@@ -1,6 +1,31 @@
-require('dotenv').config();
 const { ErrorHandler } = require("../middleware/errors");
 const Admin = require('../models/adminModel');
+const Item = require('../models/itemsModel');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+const createAccessToken = (user) => {
+    return jwt.sign(user, process.env.ADMIN_JWT_ACCESS_KEY, { expiresIn: "1d" });
+};
+
+const refreshToken =  (req, res,next) => {
+    try {
+        const rf_token = req.body.refreshtoken;
+        if (!rf_token)
+            return next(new ErrorHandler(400,"Please Login or Register"));
+
+        jwt.verify(rf_token, process.env.ADMIN_JWT_REFRESH_KEY, (err, user) => {
+            if (err) return next(new ErrorHandler(401,"Invalid Authentication"));
+
+            const accesstoken = createAccessToken({ id: user._id });
+
+            return res.status(200).json({ accesstoken });
+        });
+    } catch (err) {
+        next(err);
+    }
+}
 
 const login = async (req,res,next) => {
     try {
@@ -20,7 +45,7 @@ const login = async (req,res,next) => {
         
         const refreshToken = jwt.sign({
             id: admin._id,
-        }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
+        }, process.env.ADMIN_JWT_REFRESH_KEY, { expiresIn: '1d' });
         return res.status(200).json({success:true, accessToken , refreshToken});
 
     } catch (err) {
@@ -30,20 +55,49 @@ const login = async (req,res,next) => {
 
 const itemlist = async (req,res,next) => {
     try {
-        const {status} = req.params || 'ALL';
+        const status = req.query.status || 'ALL';
         let page = parseInt(req.query.page) || 1;
         let limit  = parseInt(req.query.limit) || 10;
         if(page<=0) page = 1;
+        page = page - 1;
         if(limit<0) limit = 0;
         if(status!='PENDING'&&status!='APPROVED'&&status!='REJECTED'&&status!='ALL')
             return next(new ErrorHandler(406,'Invalid status value'));
+        if(status!='ALL'){
+            const items = await Item.find({
+                status
+            }).skip(page*limit).limit(limit);
+            return res.status(200).json({success:true,items});
+        }else{
+            const items = await Item.find().skip(page*limit).limit(limit);
+            return res.status(200).json({success:true,items});
+        }
     } catch (err) {
         return next(err);
     }
 }
 
+// const create = async (req,res,next) => {
+//     try {
+//         const {uname,password} = req.body;
+//         if(!uname||!password)
+//             return next(new ErrorHandler(406,"All input fields required -> uname,password"))
+//         const encryptedPassword = await bcrypt.hash(password, 12);
+//         const admin = await Admin.create({
+//             uname,
+//             password:encryptedPassword
+//         });
+//         if(admin)
+//             return res.status(200).json({success:true,msg:`Admin created : ${admin.uname}`});
+//     } catch (err) {
+//         return next(err);
+//     }
+// }
+
 
 module.exports = {
+    refreshToken,
     login,
-    itemlist
+    itemlist,
+    // create
 }

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema({
+const adminSchema = mongoose.Schema({
   uname:{
     type: String,
     unique: true
@@ -10,6 +10,6 @@ const userSchema = mongoose.Schema({
   }
 });
 
-const UserModel = mongoose.model("admin",userSchema);
+const adminModel = mongoose.model("admin",adminSchema);
 
-module.exports=UserModel;
+module.exports= adminModel;

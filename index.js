@@ -7,7 +7,6 @@ const homeRoutes = require('./routes/homeRoutes');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cors=require('cors');
-const cookieparser = require('cookie-parser');
 const cluster = require('cluster');
 const os = require('os');
 const status = require('express-status-monitor');
@@ -37,7 +36,6 @@ if (cluster.isPrimary) {
 	app.use(express.json());
 	app.use(cors({origin:true}));
 	app.use(express.urlencoded({ extended: false }));
-	app.use(cookieparser());
 
 	// Connection to DataBase
 	mongoose.connect(process.env.DB_URI)
@@ -65,8 +63,8 @@ if (cluster.isPrimary) {
 	app.use(errorMiddleware);
 
 	// Routes
-	app.use('/api/',authRoutes,errorMiddleware);
-	app.use('/api/admin',adminRoutes,errorMiddleware);
 	app.use('/api/home',homeRoutes,errorMiddleware);
+	app.use('/api/admin',adminRoutes,errorMiddleware);
+	app.use('/api',authRoutes,errorMiddleware);
 }
 
