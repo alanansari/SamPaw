@@ -9,7 +9,8 @@ const cloudinary = require('cloudinary').v2;
 cloudinary.config({
     cloud_name: process.env.cloud_name,
     api_key: process.env.api_key,
-    api_secret: process.env.api_secret
+    api_secret: process.env.api_secret,
+    secure: true
   });
 
 const createPost = async (req,res,next) => {
@@ -22,22 +23,30 @@ const createPost = async (req,res,next) => {
             return next(new ErrorHandler(406,"Name required"));
         }
 
-        let file = req.files ? req.files.file : null;
+        let files = req.files ? req.files.files : null;
+        let images=[];
+        for(const file of files){
         let image=null;
         if(file){
-            const result = await cloudinary.uploader.upload(file.tempFilePath,{
+            await cloudinary.uploader.upload(file.tempFilePath,{
                 public_id: `${Date.now()}`,
                 resource_type:'image',
-                folder:'images'
+                folder:'images',
+                width: 2000, height: 1000, crop: "limit" 
+            },(err,result)=>{
+                // if (err) return res.status(500).send("upload image error");
+                if (err) return next(new ErrorHandler(500,"Upload Image Error"));
+                image = result.secure_url
+                console.log((result));
+                images.push(image);
             });
-            image = result.secure_url
-            console.log((result));
             
         }
+    }
         await Items.create({
             name,
             description,
-            images:image
+            images:images
         })
         
         return res.status(201).json({success:true, msg:"Item Created"})
