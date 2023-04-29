@@ -5,5 +5,4 @@ const authverify = require('../middleware/authverify')
 
 router.post('/create',authverify.auth,homeController.createPost);
 
-
 module.exports = router;
