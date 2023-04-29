@@ -42,11 +42,12 @@ const createPost = async (req,res,next) => {
             Promises.push(cloudinary.uploader.upload(file.tempFilePath,{
                 public_id: `${Date.now()}`,
                 resource_type:'image',
+                allowed_formats:['jpg','png'],
                 folder:'images',
                 width: 2000, height: 1000, crop: "limit" 
             },(err,result)=>{
                 // if (err) return res.status(500).send("upload image error");
-                if (err) return next(new ErrorHandler(500,"Upload Image Error"));
+                if (err) return next(new ErrorHandler(500,"Upload Image Error(ONLY JPG AND PNG ALLOWED)"));
                 image = result.secure_url
                 // console.log((result));
                 images.push(image);
