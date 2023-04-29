@@ -4,6 +4,7 @@ const Items = require("../models/itemsModel");
 
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
+const { Types } = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -23,12 +24,22 @@ const createPost = async (req,res,next) => {
             return next(new ErrorHandler(406,"Name required"));
         }
 
+        
         let files = req.files ? req.files.files : null;
         let images=[];
+        let Promises = [];
+
+        isArr = Object.prototype.toString.call(files) == '[object Array]';
+        if(!isArr){
+            files=[];
+            files.push(req.files.files);
+        }
+
+
         for(const file of files){
         let image=null;
         if(file){
-            await cloudinary.uploader.upload(file.tempFilePath,{
+            Promises.push(cloudinary.uploader.upload(file.tempFilePath,{
                 public_id: `${Date.now()}`,
                 resource_type:'image',
                 folder:'images',
@@ -37,12 +48,14 @@ const createPost = async (req,res,next) => {
                 // if (err) return res.status(500).send("upload image error");
                 if (err) return next(new ErrorHandler(500,"Upload Image Error"));
                 image = result.secure_url
-                console.log((result));
+                // console.log((result));
                 images.push(image);
-            });
-            
+            }));
         }
     }
+    await Promise.all(Promises);
+
+
         await Items.create({
             name,
             description,
