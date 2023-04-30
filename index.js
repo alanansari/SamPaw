@@ -5,15 +5,15 @@ const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 require('dotenv').config();
-const mongoose = require('mongoose');
 const cors=require('cors');
 const cluster = require('cluster');
 const os = require('os');
+const helmet = require('helmet');
 const status = require('express-status-monitor');
-const fileUpload = require('express-fileupload')
+const fileUpload = require('express-fileupload');
+const connectDB = require('./connectDB');
 
 const totalCPUs = os.cpus().length;
-
 
 if (cluster.isPrimary) {
 	console.log(`Primary ${process.pid} is running`);
@@ -38,22 +38,21 @@ if (cluster.isPrimary) {
 	app.use(express.urlencoded({ extended: false }));
 
 	// Connection to DataBase
-	mongoose.connect(process.env.DB_URI)
-	.then(()=>{
-		app.listen(process.env.PORT);
-		console.log(`Connected to PORT: ${process.env.PORT}`);
-	})
-	.catch((err)=>{
-		console.log(err);
-	});
+	connectDB();
+
+	app.listen(process.env.PORT);
+    console.log(`Connected to port ${process.env.PORT}`);
 
 	// status monitor
 	app.use(status());
 
+	// express app security
+	app.use(helmet());
+
 	// Applying Global Rate Limiter
 	const limiter = rateLimit({
-		windowMs: 5 * 60 * 1000, // 5 minutes
-		max: 100,
+		windowMs: 1 * 60 * 1000, // 1 minutes
+		max: 30,				// max 30 requests
 		standardHeaders: true,
 		legacyHeaders: false
 	});
