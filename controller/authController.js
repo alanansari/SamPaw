@@ -98,6 +98,7 @@ const email = async (req,res,next) => {
             if(dateNow<otpDate+10)
                 return next(new ErrorHandler(400,"Wait for 10 seconds to resend mail."));
             oldotp.otp = mailedOTP;
+            oldotp.used = false;
             await oldotp.save();
         }else{
             await Otp.create({
