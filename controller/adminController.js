@@ -77,6 +77,24 @@ const itemlist = async (req,res,next) => {
     }
 }
 
+const changeStatus = async (req,res,next) => {
+    try {
+        const {itemId} = req.params;
+        const {status} = req.body;
+        if(!status)
+            return next(new ErrorHandler(400,"Input required -> status"));
+        if(status!='PENDING'&&status!='APPROVED'&&status!='REJECTED')
+            return next(new ErrorHandler(406,"Invalid status value : can only be PENDING,APPROVED,REJECTED"));
+        const updateStatus = await Item.updateOne({_id:itemId},{
+            status
+        });
+        
+        return res.status(200).json({success:true,msg:`Updated item status to ${status}`});
+    } catch (err) {
+        return next(err);
+    }
+}
+
 // const create = async (req,res,next) => {
 //     try {
 //         const {uname,password} = req.body;
@@ -99,5 +117,6 @@ module.exports = {
     refreshToken,
     login,
     itemlist,
-    // create
+    // create,
+    changeStatus
 }
