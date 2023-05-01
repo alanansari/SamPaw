@@ -14,11 +14,12 @@ cloudinary.config({
     secure: true
   });
 
-const createPost = async (req,res,next) => {
+const createItem = async (req,res,next) => {
    
     try {
 
         const {name , description } = req.body;
+        const user = req.user;
        
         if(!name){
             return next(new ErrorHandler(406,"Name required"));
@@ -37,31 +38,37 @@ const createPost = async (req,res,next) => {
 
 
         for(const file of files){
-        let image=null;
-        if(file){
-            Promises.push(cloudinary.uploader.upload(file.tempFilePath,{
-                public_id: `${Date.now()}`,
-                resource_type:'image',
-                allowed_formats:['jpg','png'],
-                folder:'images',
-                width: 2000, height: 1000, crop: "limit" 
-            },(err,result)=>{
-                // if (err) return res.status(500).send("upload image error");
-                if (err) return next(new ErrorHandler(500,"Upload Image Error(ONLY JPG AND PNG ALLOWED)"));
-                image = result.secure_url
-                // console.log((result));
-                images.push(image);
-            }));
+            let image=null;
+            if(file){
+                Promises.push(cloudinary.uploader.upload(file.tempFilePath,{
+                    public_id: `${Date.now()}`,
+                    resource_type:'image',
+                    allowed_formats:['jpg','png'],
+                    folder:'images',
+                    width: 2000, height: 1000, crop: "limit" 
+                },(err,result)=>{
+                    // if (err) return res.status(500).send("upload image error");
+                    if (err) return next(new ErrorHandler(500,"Upload Image Error(ONLY JPG AND PNG ALLOWED)"));
+                    image = result.secure_url
+                    // console.log((result));
+                    images.push(image);
+                }));
+            }
         }
-    }
-    await Promise.all(Promises);
+        await Promise.all(Promises);
 
 
-        await Items.create({
+        const item =  await Items.create({
+            user:user._id,
             name,
             description,
             images:images
-        })
+        });
+
+        let userItems = user.items;
+        userItems.push(item._id);
+        user.items = userItems;
+        await user.save();
         
         return res.status(201).json({success:true, msg:"Item Created"})
     } catch (err) {
@@ -70,5 +77,5 @@ const createPost = async (req,res,next) => {
 }
 
 module.exports = {
-    createPost
+    createItem
 }
