@@ -64,12 +64,12 @@ const itemlist = async (req,res,next) => {
         if(status!='PENDING'&&status!='APPROVED'&&status!='REJECTED'&&status!='ALL')
             return next(new ErrorHandler(406,'Invalid status value'));
         if(status!='ALL'){
-            const items = await Item.find({
+            let items = await Item.find({
                 status
-            }).skip(page*limit).limit(limit);
+            }).skip(page*limit).limit(limit).populate('user',{password:0,items:0});
             return res.status(200).json({success:true,items});
         }else{
-            const items = await Item.find().skip(page*limit).limit(limit);
+            const items = await Item.find().skip(page*limit).limit(limit).populate('user',{password:0,items:0});
             return res.status(200).json({success:true,items});
         }
     } catch (err) {

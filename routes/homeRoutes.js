@@ -3,6 +3,6 @@ const router = express.Router();
 const homeController = require('../controller/homeController');
 const authverify = require('../middleware/authverify')
 
-router.post('/create',authverify.auth,homeController.createPost);
+router.post('/create',authverify.auth,homeController.createItem);
 
 module.exports = router;
