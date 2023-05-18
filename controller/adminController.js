@@ -3,7 +3,8 @@ const Admin = require('../models/adminModel');
 const Item = require('../models/itemsModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const allstatus = require('../utils/allstatus')
+const allstatus = require('../utils/allstatus');
+const UserModel = require("../models/UserModel");
 require('dotenv').config();
 
 
@@ -97,6 +98,29 @@ const changeStatus = async (req,res,next) => {
         return next(err);
     }
 }
+const toggleCollector = async (req,res,next) => {
+    try{
+        const {email} = req.body;
+        if(!email)
+        return next(new ErrorHandler(400,"Input required -> email"));
+        const user = await UserModel.findOne({email:email});
+        if(!user)
+        return next(new ErrorHandler(400,"User Does Not Exist"));
+        if(user.role==='COLLECTOR'){
+            user.role='USER';
+            await user.save();
+            return res.status(200).json({success:true,msg:'Converted to USER role'});
+        }
+        else{
+            user.role='COLLECTOR';
+            await user.save();
+            return res.status(200).json({success:true,msg:'Converted to COLLECTOR role'});
+        }
+        
+    } catch(err) {
+        return next(err);
+    }
+}
 
 // const collect = async (req,res,next) => {
 //     try{
@@ -135,9 +159,10 @@ module.exports = {
     login,
     itemlist,
     // create,
-    changeStatus
+    changeStatus,
+    toggleCollector
 }
 
-// Admin Side: Make Someone a collector
+
 // Admin Side: To see the highest donator
 // Admin Side: To see all the items and their history of donation and all
