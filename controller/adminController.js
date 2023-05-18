@@ -89,10 +89,11 @@ const changeStatus = async (req,res,next) => {
             return next(new ErrorHandler(400,"Input required -> status"));
         if(allstatus.includes(status)===false)
             return next(new ErrorHandler(406,`Invalid status value : can only be ${[...allstatus]}`));
-        const updateStatus = await Item.updateOne({_id:itemId},{
+        const updateStatus = await Item.findByIdAndUpdate(itemId,{
             status
         });
-        
+        if(!updateStatus)
+            return next(new ErrorHandler(404,'Item not found'));
         return res.status(200).json({success:true,msg:`Updated item status to ${status}`});
     } catch (err) {
         return next(err);
