@@ -51,7 +51,12 @@ const userSchema = mongoose.Schema({
   items:[{
     type: ObjectId,
     ref:'item'
-  }]
+  }],
+  role:{
+    type:String,
+    enum:['USER','COLLECTOR'],
+    default:'USER'
+  }
 });
 
 const UserModel = mongoose.model("user",userSchema);
