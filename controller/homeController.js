@@ -76,6 +76,28 @@ const createItem = async (req,res,next) => {
     }
 }
 
+const getCollectedItems = async (req,res,next) => {
+    try {
+
+        let page = parseInt(req.query.page) || 1;
+        let limit  = parseInt(req.query.limit) || 10;
+
+        if(page<=0) page = 1;
+        page = page - 1;
+        if(limit<0) limit = 0;
+
+        const items = await Items.find({status:{ $regex: /^COLLECTED.*$/ }})
+                                    .skip(page*limit)
+                                    .limit(limit)
+                                    .populate('user',{password:0,items:0});
+
+        return res.status(200).json({success:true, items});
+    } catch (err) {
+        return next(err)
+    }
+}
+
 module.exports = {
-    createItem
+    createItem,
+    getCollectedItems
 }
