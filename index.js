@@ -2,6 +2,7 @@ const express = require('express');
 const rateLimit  = require('express-rate-limit');
 const {errorMiddleware} = require('./middleware/errors');
 const authRoutes = require('./routes/authRoutes');
+const collectorRoutes = require('./routes/collectorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 require('dotenv').config();
@@ -64,6 +65,7 @@ if (cluster.isPrimary) {
 	// Routes
 	app.use('/api/home',homeRoutes,errorMiddleware);
 	app.use('/api/admin',adminRoutes,errorMiddleware);
+	app.use('/api/col',collectorRoutes,errorMiddleware);
 	app.use('/api',authRoutes,errorMiddleware);
 }
 
