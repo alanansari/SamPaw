@@ -52,6 +52,7 @@ const changeStatusToCollected = async (req,res,next) => {
             return next(new ErrorHandler(400,'Item status not approved or collected'));
         
         item.status = 'COLLECTED_'+dropPlace;
+        await item.save();
         
         return res.status(200).json({success:true,msg:`Changed Item status to COLLECTED_${dropPlace}`})
 
