@@ -3,7 +3,10 @@ const Admin = require('../models/adminModel');
 const Item = require('../models/itemsModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const allstatus = require('../utils/allstatus')
 require('dotenv').config();
+
+
 
 const createAccessToken = (user) => {
     return jwt.sign(user, process.env.ADMIN_JWT_ACCESS_KEY, { expiresIn: "1d" });
@@ -61,7 +64,7 @@ const itemlist = async (req,res,next) => {
         if(page<=0) page = 1;
         page = page - 1;
         if(limit<0) limit = 0;
-        if(status!='PENDING'&&status!='APPROVED'&&status!='REJECTED'&&status!='ALL')
+        if(!status in allstatus)
             return next(new ErrorHandler(406,'Invalid status value'));
         if(status!='ALL'){
             let items = await Item.find({
@@ -83,8 +86,8 @@ const changeStatus = async (req,res,next) => {
         const {status} = req.body;
         if(!status)
             return next(new ErrorHandler(400,"Input required -> status"));
-        if(status!='PENDING'&&status!='APPROVED'&&status!='REJECTED')
-            return next(new ErrorHandler(406,"Invalid status value : can only be PENDING,APPROVED,REJECTED"));
+        if(allstatus.includes(status)===false)
+            return next(new ErrorHandler(406,`Invalid status value : can only be ${[...allstatus]}`));
         const updateStatus = await Item.updateOne({_id:itemId},{
             status
         });
@@ -94,6 +97,18 @@ const changeStatus = async (req,res,next) => {
         return next(err);
     }
 }
+
+// const collect = async (req,res,next) => {
+//     try{
+//         const {itemId} = req.body;
+//         if(!itemId)
+//         return next(new ErrorHandler(400,"Input required -> itemId"));
+//         const item = await Item.findById({_id:itemId});
+//         if(item.status=='COLLECTED' && item) 
+//     } catch(err) {
+//         return next(err);
+//     }
+// }
 
 // const create = async (req,res,next) => {
 //     try {
@@ -111,6 +126,8 @@ const changeStatus = async (req,res,next) => {
 //         return next(err);
 //     }
 // }
+// const astatus = "PENDING1"
+// console.log(`Invalid status value : can only be ${[...allstatus]}`);
 
 
 module.exports = {
@@ -120,3 +137,7 @@ module.exports = {
     // create,
     changeStatus
 }
+
+// Admin Side: Make Someone a collector
+// Admin Side: To see the highest donator
+// Admin Side: To see all the items and their history of donation and all
