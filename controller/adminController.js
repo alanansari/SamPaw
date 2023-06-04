@@ -147,6 +147,20 @@ const seeAllUsers = async (req,res,next) => {
     }
 } 
 
+const allCollectedItems = async (req,res,next) => {
+    try {
+        let page = parseInt(req.query.page) || 1;
+        let limit  = parseInt(req.query.limit) || 10;
+        if(page<=0) page = 1;
+        page = page - 1;
+        if(limit<0) limit = 0;
+        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}});
+        res.status(200).json({success:true,items});
+    } catch (err) {
+        next(err);
+    }
+}
+
 // const collect = async (req,res,next) => {
 //     try{
 //         const {itemId} = req.body;
@@ -186,7 +200,8 @@ module.exports = {
     // create,
     changeStatus,
     toggleCollector,
-    seeAllUsers
+    seeAllUsers,
+    allCollectedItems
 }
 
 
