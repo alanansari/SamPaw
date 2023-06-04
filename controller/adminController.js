@@ -123,6 +123,30 @@ const toggleCollector = async (req,res,next) => {
     }
 }
 
+const seeAllUsers = async (req,res,next) => {
+    try {
+        const role = req.query.role || 'ALL';
+
+        if(role!='USER'&&role!='COLLECTOR'&&role!='ALL')
+            return next(new ErrorHandler(400,"Invalid role must be -> USER or COLLECTOR or ALL"));
+
+        let page = parseInt(req.query.page) || 1;
+        let limit  = parseInt(req.query.limit) || 10;
+        if(page<=0) page = 1;
+        page = page - 1;
+        if(limit<0) limit = 0;
+
+        let users = (role==='ALL')?
+        await UserModel.find({password:0,items:0}).skip(page*limit).limit(limit):
+        await UserModel.find({role},{password:0,items:0}).skip(page*limit).limit(limit);
+        
+        return res.status(200).json({success:true,users});
+
+    } catch (err) {
+        return next(err);
+    }
+} 
+
 // const collect = async (req,res,next) => {
 //     try{
 //         const {itemId} = req.body;
@@ -161,7 +185,8 @@ module.exports = {
     itemlist,
     // create,
     changeStatus,
-    toggleCollector
+    toggleCollector,
+    seeAllUsers
 }
 
 

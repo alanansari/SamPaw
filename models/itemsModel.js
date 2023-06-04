@@ -19,7 +19,7 @@ const itemSchema = mongoose.Schema({
     enum: ['PENDING','APPROVED',
     'COLLECTED_BH1','COLLECTED_BH2','COLLECTED_BH3',
     'COLLECTED_GH1','COLLECTED_GH2','COLLECTED_GH3',
-    'REJECTED','DONATED'],
+    'COLLECTED_AKG','REJECTED','DONATED'],
     default:'PENDING'
   }
 });

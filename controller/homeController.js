@@ -72,7 +72,7 @@ const createItem = async (req,res,next) => {
         
         return res.status(201).json({success:true, msg:"Item Created"})
     } catch (err) {
-        next(err)
+        return next(err);
     }
 }
 
@@ -86,7 +86,7 @@ const getCollectedItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Items.find({status:{ $regex: /^COLLECTED.*$/ }})
+        const items = await Items.find({status:'COLLECTED_AKG'})
                                     .skip(page*limit)
                                     .limit(limit)
                                     .populate('user',{password:0,items:0});
@@ -97,7 +97,28 @@ const getCollectedItems = async (req,res,next) => {
     }
 }
 
+const getMyItems = async (req,res,next) => {
+    try {
+        const user = req.user;
+        let page = parseInt(req.query.page) || 1;
+        let limit  = parseInt(req.query.limit) || 10;
+
+        if(page<=0) page = 1;
+        page = page - 1;
+        if(limit<0) limit = 0;
+
+        const items = await Items.find({_id:{$in:user.items}})
+                            .skip(page*limit).limit(limit);
+
+        return res.status(200).json({success:true, items});                    
+
+    } catch (err) {
+        return next(err);
+    }
+}
+
 module.exports = {
     createItem,
-    getCollectedItems
+    getCollectedItems,
+    getMyItems
 }
