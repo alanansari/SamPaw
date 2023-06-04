@@ -86,7 +86,7 @@ const getCollectedItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Items.find({status:{ $regex: /^COLLECTED.*$/ }})
+        const items = await Items.find({status:'COLLECTED_AKG'})
                                     .skip(page*limit)
                                     .limit(limit)
                                     .populate('user',{password:0,items:0});
