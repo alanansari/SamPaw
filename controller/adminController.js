@@ -67,15 +67,13 @@ const itemlist = async (req,res,next) => {
         if(limit<0) limit = 0;
         if(!status in allstatus)
             return next(new ErrorHandler(406,'Invalid status value'));
-        if(status!='ALL'){
-            let items = await Item.find({
+            let items =  status!='ALL' ? await Item.find({
                 status
-            }).skip(page*limit).limit(limit).populate('user',{password:0,items:0});
+            }).skip(page*limit).limit(limit).populate('user',{password:0,items:0}) :
+            await Item.find().skip(page*limit).limit(limit).populate('user',{password:0,items:0});
+
             return res.status(200).json({success:true,items});
-        }else{
-            const items = await Item.find().skip(page*limit).limit(limit).populate('user',{password:0,items:0});
-            return res.status(200).json({success:true,items});
-        }
+        
     } catch (err) {
         return next(err);
     }
@@ -87,7 +85,7 @@ const changeStatus = async (req,res,next) => {
         const {status} = req.body;
         if(!status)
             return next(new ErrorHandler(400,"Input required -> status"));
-        if(allstatus.includes(status)===false)
+        if(allstatus.includes(status)===false && status!='ALL')
             return next(new ErrorHandler(406,`Invalid status value : can only be ${[...allstatus]}`));
         const updateStatus = await Item.findByIdAndUpdate(itemId,{
             status
@@ -161,6 +159,24 @@ const allCollectedItems = async (req,res,next) => {
     }
 }
 
+const highestDonor = async (req,res,next) => {
+    try {
+        const topDonors = await UserModel.aggregate([
+            {
+                $lookup:{
+                    from:"$items",
+                    as:"items",
+                    localField:"status",
+                    foreignField:"_id"
+                }
+            }
+        ])
+        console.log(topDonors);
+        res.status(200).json({success:true,topDonors});
+    } catch (err) {
+        next(err);
+    }
+}
 // const collect = async (req,res,next) => {
 //     try{
 //         const {itemId} = req.body;
@@ -201,7 +217,8 @@ module.exports = {
     changeStatus,
     toggleCollector,
     seeAllUsers,
-    allCollectedItems
+    allCollectedItems,
+    highestDonor,
 }
 
 
