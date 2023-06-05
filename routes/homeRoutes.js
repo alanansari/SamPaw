@@ -5,5 +5,6 @@ const authverify = require('../middleware/authverify')
 
 router.post('/create',authverify.auth,homeController.createItem);
 router.get('/collected',authverify.auth,homeController.getCollectedItems);
+router.get('/myitems',authverify.auth,homeController.getMyItems);
 
 module.exports = router;
