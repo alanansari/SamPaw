@@ -163,15 +163,43 @@ const highestDonor = async (req,res,next) => {
     try {
         const topDonors = await UserModel.aggregate([
             {
-                $lookup:{
-                    from:"$items",
-                    as:"items",
-                    localField:"status",
-                    foreignField:"_id"
+              $lookup: {
+                from: "items",
+                localField: "items",
+                foreignField: "_id",
+                as: "populatedItems"
+              }
+            },
+            {
+              $addFields: {
+                donated_count: {
+                  $size: {
+                    $filter: {
+                      input: "$populatedItems",
+                      as: "item",
+                      cond: { $eq: ["$$item.status", "DONATED"] }
+                    }
+                  }
                 }
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                email: 1,
+                donated_count: 1
+              }
+            },
+            {
+              $sort: {
+                donated_count: -1
+              }
+            },
+            {
+              $limit: 5
             }
-        ])
-        console.log(topDonors);
+          ]);          
         res.status(200).json({success:true,topDonors});
     } catch (err) {
         next(err);
