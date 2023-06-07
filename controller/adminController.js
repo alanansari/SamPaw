@@ -150,7 +150,10 @@ const allCollectedItems = async (req,res,next) => {
         if(page<=0) page = 1;
         page = page - 1;
         if(limit<0) limit = 0;
-        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}});
+        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}})
+                                .skip(page*limit)
+                                .limit(limit)
+                                .populate('user',{password:0,items:0});
         res.status(200).json({success:true,items});
     } catch (err) {
         next(err);
