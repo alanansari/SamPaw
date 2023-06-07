@@ -1,10 +1,8 @@
 const { ErrorHandler } = require("../middleware/errors");
-const Admin = require('../models/adminModel');
-const Item = require('../models/itemsModel');
+const {User,Admin,Item} = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const allstatus = require('../utils/allstatus');
-const UserModel = require("../models/UserModel");
 require('dotenv').config();
 
 
@@ -102,7 +100,7 @@ const toggleCollector = async (req,res,next) => {
         const {email} = req.body;
         if(!email)
         return next(new ErrorHandler(400,"Input required -> email"));
-        const user = await UserModel.findOne({email:email});
+        const user = await User.findOne({email:email});
         if(!user)
         return next(new ErrorHandler(400,"User Does Not Exist"));
         if(user.role==='COLLECTOR'){
@@ -135,8 +133,8 @@ const seeAllUsers = async (req,res,next) => {
         if(limit<0) limit = 0;
 
         let users = (role==='ALL')?
-        await UserModel.find({password:0,items:0}).skip(page*limit).limit(limit):
-        await UserModel.find({role},{password:0,items:0}).skip(page*limit).limit(limit);
+        await User.find({password:0,items:0}).skip(page*limit).limit(limit):
+        await User.find({role},{password:0,items:0}).skip(page*limit).limit(limit);
         
         return res.status(200).json({success:true,users});
 
@@ -152,7 +150,10 @@ const allCollectedItems = async (req,res,next) => {
         if(page<=0) page = 1;
         page = page - 1;
         if(limit<0) limit = 0;
-        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}});
+        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}})
+                                .skip(page*limit)
+                                .limit(limit)
+                                .populate('user',{password:0,items:0});
         res.status(200).json({success:true,items});
     } catch (err) {
         next(err);
@@ -161,7 +162,7 @@ const allCollectedItems = async (req,res,next) => {
 
 const highestDonor = async (req,res,next) => {
     try {
-        const topDonors = await UserModel.aggregate([
+        const topDonors = await User.aggregate([
             {
               $lookup: {
                 from: "items",

@@ -1,7 +1,5 @@
 require('dotenv').config();
-const User = require("../models/UserModel");
-const Items = require("../models/itemsModel");
-
+const {Items} = require("../models");
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 const { Types } = require('mongoose');

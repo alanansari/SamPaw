@@ -3,8 +3,7 @@ const bcrypt = require("bcrypt");
 const otpGenerator = require('otp-generator');
 const mailer = require("../utils/mailer");
 require('dotenv').config();
-const User = require("../models/UserModel");
-const Otp = require("../models/OtpModel");
+const {User,Otp} = require("../models");
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 

@@ -1,6 +1,5 @@
 const { ErrorHandler } = require('../middleware/errors');
-const User = require('../models/UserModel');
-const Item = require('../models/itemsModel');
+const {Item} = require('../models');
 const drops = ['BH1','BH2','BH3','GH1','GH2','GH3']
 
 const getApprovedItemsList = async (req,res,next) => {

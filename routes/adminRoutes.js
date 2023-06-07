@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controller/adminController');
+const {adminController} = require('../controller');
 const authverify = require('../middleware/authverify')
 
 router.get('/items',authverify.adminauth,adminController.itemlist);
