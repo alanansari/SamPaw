@@ -13,6 +13,9 @@ const helmet = require('helmet');
 const status = require('express-status-monitor');
 const fileUpload = require('express-fileupload');
 const connectDB = require('./connectDB');
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger-output.json')
+
 
 const totalCPUs = os.cpus().length;
 
@@ -67,5 +70,6 @@ if (cluster.isPrimary) {
 	app.use('/api/admin',adminRoutes,errorMiddleware);
 	app.use('/api/col',collectorRoutes,errorMiddleware);
 	app.use('/api',authRoutes,errorMiddleware);
+	app.use('/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 }
 

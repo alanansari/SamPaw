@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {Items} = require("../models");
+const {Item} = require("../models");
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 const { Types } = require('mongoose');
@@ -56,7 +56,7 @@ const createItem = async (req,res,next) => {
         await Promise.all(Promises);
 
 
-        const item =  await Items.create({
+        const item =  await Item.create({
             user:user._id,
             name,
             description,
@@ -84,7 +84,7 @@ const getCollectedItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Items.find({status:'COLLECTED_AKG'})
+        const items = await Item.find({status:'COLLECTED_AKG'})
                                     .skip(page*limit)
                                     .limit(limit)
                                     .populate('user',{password:0,items:0});
@@ -105,7 +105,7 @@ const getMyItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Items.find({_id:{$in:user.items}})
+        const items = await Item.find({_id:{$in:user.items}})
                             .skip(page*limit).limit(limit);
 
         return res.status(200).json({success:true, items});                    
