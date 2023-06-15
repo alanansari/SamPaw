@@ -77,6 +77,8 @@ const createItem = async (req,res,next) => {
 const getCollectedItems = async (req,res,next) => {
     try {
 
+        const user = req.user;
+        console.log(user);
         let page = parseInt(req.query.page) || 1;
         let limit  = parseInt(req.query.limit) || 10;
 
@@ -84,7 +86,11 @@ const getCollectedItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Item.find({status:'COLLECTED_AKG'})
+        const items = await Item
+                            .find({
+                                    status:'COLLECTED_AKG',
+                                    user:{$ne:user._id}
+                                })
                                     .skip(page*limit)
                                     .limit(limit)
                                     .populate('user',{password:0,items:0});
@@ -115,8 +121,19 @@ const getMyItems = async (req,res,next) => {
     }
 }
 
+
+const searchItems = async (req,res,next) => {
+    try {
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+
 module.exports = {
     createItem,
     getCollectedItems,
-    getMyItems
+    getMyItems,
+    searchItems
 }

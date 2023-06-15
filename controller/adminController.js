@@ -206,17 +206,6 @@ const highestDonor = async (req,res,next) => {
         next(err);
     }
 }
-// const collect = async (req,res,next) => {
-//     try{
-//         const {itemId} = req.body;
-//         if(!itemId)
-//         return next(new ErrorHandler(400,"Input required -> itemId"));
-//         const item = await Item.findById({_id:itemId});
-//         if(item.status=='COLLECTED' && item) 
-//     } catch(err) {
-//         return next(err);
-//     }
-// }
 
 // const create = async (req,res,next) => {
 //     try {
@@ -234,8 +223,6 @@ const highestDonor = async (req,res,next) => {
 //         return next(err);
 //     }
 // }
-// const astatus = "PENDING1"
-// console.log(`Invalid status value : can only be ${[...allstatus]}`);
 
 
 module.exports = {
