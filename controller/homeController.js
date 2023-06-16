@@ -78,7 +78,6 @@ const getCollectedItems = async (req,res,next) => {
     try {
 
         const user = req.user;
-        console.log(user);
         let page = parseInt(req.query.page) || 1;
         let limit  = parseInt(req.query.limit) || 10;
 
@@ -86,16 +85,39 @@ const getCollectedItems = async (req,res,next) => {
         page = page - 1;
         if(limit<0) limit = 0;
 
-        const items = await Item
-                            .find({
-                                    status:'COLLECTED_AKG',
-                                    user:{$ne:user._id}
-                                })
-                                    .skip(page*limit)
-                                    .limit(limit)
-                                    .populate('user',{password:0,items:0});
+        const items = await Item.aggregate([
+            {
+              $match: {
+                status: 'COLLECTED_AKG',
+                user: { $ne: user._id }
+              }
+            },
+            {
+              $facet: {
+                count: [
+                  { $count: "total" }
+                ],
+                results: [
+                  { $skip: page * limit },
+                  { $limit: limit },
+                  { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user" } },
+                  { $unwind: "$user" },
+                  { $project: { "user.password": 0, "user.items": 0 } }
+                ]
+              }
+            },
+            {
+              $unwind: "$count"
+            },
+            {
+              $project: {
+                results: 1,
+                count: "$count.total"
+              }
+            }
+          ]);
 
-        return res.status(200).json({success:true, items});
+        return res.status(200).json({success:true, pages:Math.ceil(items[0].count/limit), items:items[0].results});
     } catch (err) {
         return next(err)
     }
