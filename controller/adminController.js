@@ -65,12 +65,63 @@ const itemlist = async (req,res,next) => {
         if(limit<0) limit = 0;
         if(!status in allstatus)
             return next(new ErrorHandler(406,'Invalid status value'));
-            let items =  status!='ALL' ? await Item.find({
-                status
-            }).skip(page*limit).limit(limit).populate('user',{password:0,items:0}) :
-            await Item.find().skip(page*limit).limit(limit).populate('user',{password:0,items:0});
+            let items =  status!='ALL' ? await Item.aggregate([
+                {
+                  $match: {
+                    status: status
+                  }
+                },
+                {
+                  $facet: {
+                    count: [
+                      { $count: "total" }
+                    ],
+                    results: [
+                      { $skip: page * limit },
+                      { $limit: limit },
+                      { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user" } },
+                      { $unwind: "$user" },
+                      { $project: { "user.password": 0, "user.items": 0 } }
+                    ]
+                  }
+                },
+                {
+                  $unwind: "$count"
+                },
+                {
+                  $project: {
+                    results: 1,
+                    count: "$count.total"
+                  }
+                }
+              ]) :
+              await Item.aggregate([
+                {
+                  $facet: {
+                    count: [
+                      { $count: "total" }
+                    ],
+                    results: [
+                      { $skip: page * limit },
+                      { $limit: limit },
+                      { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user" } },
+                      { $unwind: "$user" },
+                      { $project: { "user.password": 0, "user.items": 0 } }
+                    ]
+                  }
+                },
+                {
+                  $unwind: "$count"
+                },
+                {
+                  $project: {
+                    results: 1,
+                    count: "$count.total"
+                  }
+                }
+              ]);
 
-            return res.status(200).json({success:true,items});
+            return res.status(200).json({success:true,pages:Math.ceil(items[0].count/limit),items:items[0].results});
         
     } catch (err) {
         return next(err);
@@ -133,10 +184,59 @@ const seeAllUsers = async (req,res,next) => {
         if(limit<0) limit = 0;
 
         let users = (role==='ALL')?
-        await User.find({password:0,items:0}).skip(page*limit).limit(limit):
-        await User.find({role},{password:0,items:0}).skip(page*limit).limit(limit);
+        await User.aggregate([
+            {
+              $facet: {
+                count: [
+                  { $count: "total" }
+                ],
+                results: [
+                  { $skip: page * limit },
+                  { $limit: limit },
+                  { $project: { password: 0, items: 0 } }
+                ]
+              }
+            },
+            {
+              $unwind: "$count"
+            },
+            {
+              $project: {
+                results: 1,
+                count: "$count.total"
+              }
+            }
+          ]):
+        await User.aggregate([
+            {
+              $match: {
+                role: role
+              }
+            },
+            {
+              $facet: {
+                count: [
+                  { $count: "total" }
+                ],
+                results: [
+                  { $skip: page * limit },
+                  { $limit: limit },
+                  { $project: { password: 0, items: 0 } }
+                ]
+              }
+            },
+            {
+              $unwind: "$count"
+            },
+            {
+              $project: {
+                results: 1,
+                count: "$count.total"
+              }
+            }
+          ]);
         
-        return res.status(200).json({success:true,users});
+        return res.status(200).json({success:true,pages:Math.ceil(users[0].count/limit),users:users[0].results});
 
     } catch (err) {
         return next(err);
@@ -150,11 +250,42 @@ const allCollectedItems = async (req,res,next) => {
         if(page<=0) page = 1;
         page = page - 1;
         if(limit<0) limit = 0;
-        const items = await Item.find({status:{$regex:/^COLLECTED_.*$/}})
-                                .skip(page*limit)
-                                .limit(limit)
-                                .populate('user',{password:0,items:0});
-        res.status(200).json({success:true,items});
+        const items = await await Item.aggregate([
+            // Match the desired conditions using $match and $regex
+            {
+              $match: {
+                status: { $regex: /^COLLECTED_.*$/ }
+              }
+            },
+            // Count the total documents
+            {
+              $facet: {
+                count: [
+                  { $count: "total" }
+                ],
+                results: [
+                  // Apply pagination
+                  { $skip: page * limit },
+                  { $limit: limit },
+                  // Populate the 'user' field while excluding 'password' and 'items'
+                  { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user" } },
+                  { $unwind: "$user" },
+                  { $project: { "user.password": 0, "user.items": 0 } }
+                ]
+              }
+            },
+            // Unwind the count facet and project the result
+            {
+              $unwind: "$count"
+            },
+            {
+              $project: {
+                results: 1,
+                count: "$count.total"
+              }
+            }
+          ]);
+        res.status(200).json({success:true,pages:Math.ceil(items[0].count/limit),items:items[0].results});
     } catch (err) {
         next(err);
     }
@@ -206,17 +337,6 @@ const highestDonor = async (req,res,next) => {
         next(err);
     }
 }
-// const collect = async (req,res,next) => {
-//     try{
-//         const {itemId} = req.body;
-//         if(!itemId)
-//         return next(new ErrorHandler(400,"Input required -> itemId"));
-//         const item = await Item.findById({_id:itemId});
-//         if(item.status=='COLLECTED' && item) 
-//     } catch(err) {
-//         return next(err);
-//     }
-// }
 
 // const create = async (req,res,next) => {
 //     try {
@@ -234,8 +354,6 @@ const highestDonor = async (req,res,next) => {
 //         return next(err);
 //     }
 // }
-// const astatus = "PENDING1"
-// console.log(`Invalid status value : can only be ${[...allstatus]}`);
 
 
 module.exports = {
