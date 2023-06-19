@@ -161,7 +161,7 @@ const searchItems = async (req,res,next) => {
 
       const results = await Item.find({
                               $text: { $search: regexQuery },
-                              // status: 'COLLECTED_AKG'
+                              status: 'COLLECTED_AKG'
                             },
                             { score: { $meta: 'textScore' }, _id: 1, name: 1, description: 1 })
                             .sort({ score: { $meta: 'textScore' } })
