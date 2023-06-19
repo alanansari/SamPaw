@@ -146,7 +146,28 @@ const getMyItems = async (req,res,next) => {
 
 const searchItems = async (req,res,next) => {
     try {
-        
+      const find = req.query.find || "";
+      let page = parseInt(req.query.page) || 1;
+      let limit  = parseInt(req.query.limit) || 10;
+
+      if(page<=0) page = 1;
+      page = page - 1;
+      if(limit<0) limit = 0;
+
+      const regexQuery = find
+      .split(' ')
+      .map(term => `${term}*`)
+      .join(' ');
+
+      const results = await Item.find({
+                              $text: { $search: regexQuery },
+                              // status: 'COLLECTED_AKG'
+                            },
+                            { score: { $meta: 'textScore' }, _id: 1, name: 1, description: 1 })
+                            .sort({ score: { $meta: 'textScore' } })
+                            .skip(page * limit)
+                            .limit(limit);
+      return res.status(200).json({success:true,items:results})
     } catch (err) {
         next(err);
     }
