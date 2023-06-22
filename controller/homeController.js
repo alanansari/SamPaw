@@ -1,9 +1,11 @@
 require('dotenv').config();
-const {Item} = require("../models");
+const {Item, User} = require("../models");
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
 const { Types } = require('mongoose');
 const cloudinary = require('cloudinary').v2;
+const {userSchema} = require ('../utils/joiValidations')
+const bcrypt = require('bcrypt')
 
 cloudinary.config({
     cloud_name: process.env.cloud_name,
@@ -173,10 +175,22 @@ const searchItems = async (req,res,next) => {
     }
 }
 
+const updateUser = async (req,res,next) => {
+  try {
+    const body = await userSchema.validateAsync(req.body);
+    body.password = await bcrypt.hash(body.password, 12);
+    await User.findByIdAndUpdate(body.id ,body)
+
+    return res.status(200).json({success:true,msg:"Updated User"});
+  } catch (err) {
+    next(err);
+  }
+}
 
 module.exports = {
     createItem,
     getCollectedItems,
     getMyItems,
-    searchItems
+    searchItems,
+    updateUser
 }
