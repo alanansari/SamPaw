@@ -63,9 +63,9 @@ const itemlist = async (req,res,next) => {
         if(page<=0) page = 1;
         page = page - 1;
         if(limit<0) limit = 0;
-        if(!status in allstatus)
+        if(!allstatus.includes(status))
             return next(new ErrorHandler(406,'Invalid status value'));
-            let items =  status!='ALL' ? await Item.aggregate([
+        let items =  (status!=='ALL') ? await Item.aggregate([
                 {
                   $match: {
                     status: status
@@ -94,8 +94,8 @@ const itemlist = async (req,res,next) => {
                     count: "$count.total"
                   }
                 }
-              ]) :
-              await Item.aggregate([
+              ])
+              : await Item.aggregate([
                 {
                   $facet: {
                     count: [
@@ -121,7 +121,9 @@ const itemlist = async (req,res,next) => {
                 }
               ]);
 
-            return res.status(200).json({success:true,pages:Math.ceil(items[0].count/limit),items:items[0].results});
+            const totalCount = items.length > 0 ? items[0].count : 0;
+            const paginatedResults = items.length > 0 ? items[0].results : [];
+            return res.status(200).json({success:true,pages:Math.ceil(totalCount/limit)||0,items:paginatedResults});
         
     } catch (err) {
         return next(err);
@@ -236,7 +238,10 @@ const seeAllUsers = async (req,res,next) => {
             }
           ]);
         
-        return res.status(200).json({success:true,pages:Math.ceil(users[0].count/limit),users:users[0].results});
+          const totalCount = users.length > 0 ? users[0].count : 0;
+        const paginatedResults = users.length > 0 ? users[0].results : [];
+
+        return res.status(200).json({success:true,pages:Math.ceil(totalCount/limit),users:paginatedResults});
 
     } catch (err) {
         return next(err);
@@ -285,7 +290,9 @@ const allCollectedItems = async (req,res,next) => {
               }
             }
           ]);
-        res.status(200).json({success:true,pages:Math.ceil(items[0].count/limit),items:items[0].results});
+        const totalCount = items.length > 0 ? items[0].count : 0;
+        const paginatedResults = items.length > 0 ? items[0].results : [];
+        res.status(200).json({success:true,pages:Math.ceil(totalCount/limit),items:paginatedResults});
     } catch (err) {
         next(err);
     }
