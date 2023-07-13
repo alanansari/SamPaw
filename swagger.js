@@ -5,7 +5,7 @@ const doc = {
     title: 'Samriddhi Prawah',
     description: 'Api Docs for Dodo,Ishika,Ayush',
   },
-  host: 'localhost:3000',
+  host: 'localhost:8080',
   schemes: ['http'],
 };
 
