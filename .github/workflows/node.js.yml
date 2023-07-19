@@ -26,7 +26,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+      env:
+          SP_PROD_ENV: ${{ secrets.SP_PROD_ENV }}
     - run: npm ci
     - run: |
         touch .env
-        echo "${{secrets.SP_PROD_ENV}}" > .env
+        echo "$SP_PROD_ENV" > .env
