@@ -31,4 +31,4 @@ jobs:
     - run: npm ci
     - run: |
         touch .env
-        echo "$SP_PROD_ENV" > .env
+        echo "$SP_PROD_ENV" >> .env
