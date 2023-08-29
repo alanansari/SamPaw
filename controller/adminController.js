@@ -8,7 +8,7 @@ require('dotenv').config();
 
 
 const createAccessToken = (user) => {
-    return jwt.sign(user, process.env.ADMIN_JWT_ACCESS_KEY, { expiresIn: 45 });
+    return jwt.sign(user, process.env.ADMIN_JWT_ACCESS_KEY, { expiresIn: process.env.ADMIN_JWT_ACCESS_EXP });
 };
 
 const refreshToken =  (req, res,next) => {
@@ -47,7 +47,7 @@ const login = async (req,res,next) => {
         
         const refreshToken = jwt.sign({
             id: admin._id,
-        }, process.env.ADMIN_JWT_REFRESH_KEY, { expiresIn: '3 min' });
+        }, process.env.ADMIN_JWT_REFRESH_KEY, { expiresIn: process.env.ADMIN_JWT_REFRESH_EXP });
         return res.status(200).json({success:true, accessToken , refreshToken});
 
     } catch (err) {

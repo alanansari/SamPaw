@@ -2,7 +2,6 @@ require('dotenv').config();
 const {Item, User} = require("../models");
 const { ErrorHandler } = require('../middleware/errors');
 const {validatemail,validatepass} = require('../utils/validation');
-const { Types } = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const {userSchema} = require ('../utils/joiValidations')
 const bcrypt = require('bcrypt')

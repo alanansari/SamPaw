@@ -17,7 +17,7 @@ const home = async (req,res,next) => {
 }
 
 const createAccessToken = (user) => {
-    return jwt.sign(user, process.env.JWT_ACCESS_KEY, { expiresIn: "1d" });
+    return jwt.sign(user, process.env.JWT_ACCESS_KEY, { expiresIn: process.env.JWT_ACCESS_EXP });
 };
 
 const refreshToken =  (req, res,next) => {
@@ -55,7 +55,7 @@ const login = async (req, res, next) => {
         
         const refreshToken = jwt.sign({
             id: user._id,
-        }, process.env.JWT_REFRESH_KEY, { expiresIn: '1d' });
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: process.env.JWT_REFRESH_EXP });
         return res.status(200).json({success:true, accessToken , refreshToken});
     }catch(err){
         next(err);
@@ -202,7 +202,7 @@ const signup = async (req,res,next)=>{
         
         const refreshToken = jwt.sign({
             id: user._id,
-        }, process.env.JWT_REFRESH_KEY, { expiresIn: '7d' });
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: process.env.JWT_REFRESH_EXP });
         return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${name}!`,user,refreshToken,accessToken});
         
     } catch (err) {
@@ -344,7 +344,7 @@ const ChangePassword = async (req,res,next)=>{
         
         const refreshToken = jwt.sign({
             id: user._id,
-        }, process.env.JWT_REFRESH_KEY, { expiresIn: '7d' });
+        }, process.env.JWT_REFRESH_KEY, { expiresIn: process.env.JWT_REFRESH_EXP });
         return res.status(200).json({success:true,msg:`Welcome to Samriddhi Prawah, ${user.name}!`,user,refreshToken,accessToken});
         
     } catch (err) {
