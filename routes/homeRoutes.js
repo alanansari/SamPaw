@@ -7,6 +7,6 @@ router.post('/create',authverify.auth,homeController.createItem);
 router.patch('/updateuser',authverify.auth,homeController.updateUser); 
 router.get('/collected',authverify.auth,homeController.getCollectedItems);
 router.get('/myitems',authverify.auth,homeController.getMyItems);
-router.get('/search',authverify.auth,homeController.searchItems);
+router.get('/search',homeController.searchItems);
 
 module.exports = router;
