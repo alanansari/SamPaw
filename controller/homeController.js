@@ -164,7 +164,7 @@ const searchItems = async (req,res,next) => {
                               $text: { $search: regexQuery },
                               status: 'COLLECTED_AKG'
                             },
-                            { score: { $meta: 'textScore' }, _id: 1, name: 1, description: 1 })
+                            { score: { $meta: 'textScore' }, _id: 1, name: 1, description: 1,images: 1 })
                             .sort({ score: { $meta: 'textScore' } })
                             .skip(page * limit)
                             .limit(limit);
