@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
 const adminSchema = mongoose.Schema({
-  uname:{
+  uname: {
     type: String,
-    unique: true
+    unique: true,
   },
   password: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-const adminModel = mongoose.model("admin",adminSchema);
+const adminModel = mongoose.model("admin", adminSchema);
 
-module.exports= adminModel;
+module.exports = adminModel;
