@@ -143,6 +143,63 @@ const getCollectedItems = async (req, res, next) => {
   }
 };
 
+const getCollectedItemsNoAuth = async (req, res, next) => {
+  try {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    if (page <= 0) page = 1;
+    page = page - 1;
+    if (limit < 0) limit = 0;
+
+    const items = await Item.aggregate([
+      {
+        $match: {
+          status: "COLLECTED_AKG"
+        },
+      },
+      {
+        $facet: {
+          count: [{ $count: "total" }],
+          results: [
+            { $skip: page * limit },
+            { $limit: limit },
+            {
+              $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user",
+              },
+            },
+            { $unwind: "$user" },
+            { $project: { "user.password": 0, "user.items": 0 } },
+          ],
+        },
+      },
+      {
+        $unwind: "$count",
+      },
+      {
+        $project: {
+          results: 1,
+          count: "$count.total",
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        pages: Math.ceil(items[0].count / limit),
+        items: items[0].results,
+      });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 const getMyItems = async (req, res, next) => {
   try {
     const user = req.user;
@@ -215,6 +272,7 @@ const updateUser = async (req, res, next) => {
 module.exports = {
   createItem,
   getCollectedItems,
+  getCollectedItemsNoAuth,
   getMyItems,
   searchItems,
   updateUser,
