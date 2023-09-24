@@ -91,57 +91,38 @@ const getCollectedItems = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 10;
 
     if (page <= 0) page = 1;
-    page = page - 1;
     if (limit < 0) limit = 0;
 
-    const items = await Item.aggregate([
-      {
-        $match: {
-          status: "COLLECTED_AKG",
-          user: { $ne: user._id },
-        },
-      },
-      {
-        $facet: {
-          count: [{ $count: "total" }],
-          results: [
-            { $skip: page * limit },
-            { $limit: limit },
-            {
-              $lookup: {
-                from: "users",
-                localField: "user",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-            { $unwind: "$user" },
-            { $project: { "user.password": 0, "user.items": 0 } },
-          ],
-        },
-      },
-      {
-        $unwind: "$count",
-      },
-      {
-        $project: {
-          results: 1,
-          count: "$count.total",
-        },
-      },
-    ]);
+    const matchCriteria = {
+      status: "COLLECTED_AKG",
+      user: { $ne: user._id },
+    };
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        pages: Math.ceil(items[0].count / limit),
-        items: items[0].results,
+    // Calculate the count of matching items first
+    const itemCount = await Item.countDocuments(matchCriteria);
+
+    // Calculate the correct skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch the items based on the match criteria and pagination
+    const items = await Item.find(matchCriteria)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'user',
+        select: '-password -items',
       });
+
+    return res.status(200).json({
+      success: true,
+      pages: Math.ceil(itemCount / limit),
+      items,
+    });
   } catch (err) {
     return next(err);
   }
 };
+
 
 const getCollectedItemsNoAuth = async (req, res, next) => {
   try {
@@ -149,56 +130,37 @@ const getCollectedItemsNoAuth = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 10;
 
     if (page <= 0) page = 1;
-    page = page - 1;
     if (limit < 0) limit = 0;
 
-    const items = await Item.aggregate([
-      {
-        $match: {
-          status: "COLLECTED_AKG"
-        },
-      },
-      {
-        $facet: {
-          count: [{ $count: "total" }],
-          results: [
-            { $skip: page * limit },
-            { $limit: limit },
-            {
-              $lookup: {
-                from: "users",
-                localField: "user",
-                foreignField: "_id",
-                as: "user",
-              },
-            },
-            { $unwind: "$user" },
-            { $project: { "user.password": 0, "user.items": 0 } },
-          ],
-        },
-      },
-      {
-        $unwind: "$count",
-      },
-      {
-        $project: {
-          results: 1,
-          count: "$count.total",
-        },
-      },
-    ]);
+    const matchCriteria = {
+      status: "COLLECTED_AKG",
+    };
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        pages: Math.ceil(items[0].count / limit),
-        items: items[0].results,
+    // Calculate the count of matching items first
+    const itemCount = await Item.countDocuments(matchCriteria);
+
+    // Calculate the correct skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Fetch the items based on the match criteria and pagination
+    const items = await Item.find(matchCriteria)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'user',
+        select: '-password -items',
       });
+
+    return res.status(200).json({
+      success: true,
+      pages: Math.ceil(itemCount / limit),
+      items,
+    });
   } catch (err) {
     return next(err);
   }
 };
+
 
 const getMyItems = async (req, res, next) => {
   try {
