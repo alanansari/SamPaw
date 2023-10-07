@@ -410,28 +410,28 @@ const highestDonor = async (req, res, next) => {
   }
 };
 
-// const create = async (req,res,next) => {
-//     try {
-//         const {uname,password} = req.body;
-//         if(!uname||!password)
-//             return next(new ErrorHandler(406,"All input fields required -> uname,password"))
-//         const encryptedPassword = await bcrypt.hash(password, 12);
-//         const admin = await Admin.create({
-//             uname,
-//             password:encryptedPassword
-//         });
-//         if(admin)
-//             return res.status(200).json({success:true,msg:`Admin created : ${admin.uname}`});
-//     } catch (err) {
-//         return next(err);
-//     }
-// }
+const create = async (req,res,next) => {
+    try {
+        const {uname,password} = req.body;
+        if(!uname||!password)
+            return next(new ErrorHandler(406,"All input fields required -> uname,password"))
+        const encryptedPassword = await bcrypt.hash(password, 12);
+        const admin = await Admin.create({
+            uname,
+            password:encryptedPassword
+        });
+        if(admin)
+            return res.status(200).json({success:true,msg:`Admin created : ${admin.uname}`});
+    } catch (err) {
+        return next(err);
+    }
+}
 
 module.exports = {
   refreshToken,
   login,
   itemlist,
-  // create,
+  create,
   changeStatus,
   toggleCollector,
   seeAllUsers,

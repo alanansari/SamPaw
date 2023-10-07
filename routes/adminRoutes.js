@@ -12,6 +12,8 @@ router.patch('/status/:itemId',authverify.adminauth,adminController.changeStatus
 router.patch('/donate/:itemId',authverify.adminauth,adminController.donateItem);
 router.post('/refresh',adminController.refreshToken);
 router.post('/login',adminController.login);
+
+//This route is for testing purposes only
 // router.post('/create',adminController.create);
 
 
