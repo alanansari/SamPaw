@@ -309,11 +309,17 @@ const allCollectedItems = async (req, res, next) => {
     if (page <= 0) page = 1;
     page = page - 1;
     if (limit < 0) limit = 0;
+    let type = req.query.type || "ALL";
+    if(type!="AKG"&&type!="ALL")
+      return next(new ErrorHandler(406,"Invalid type value must be -> AKG or ALL"));
     const items = await await Item.aggregate([
       // Match the desired conditions using $match and $regex
       {
         $match: {
-          status: { $regex: /^COLLECTED_.*$/ },
+          status: (type==="AKG")?
+            {$regex: /^COLLECTED_AKG$/}: 
+            { $regex: /^COLLECTED_(?!AKG$).*$/
+        },
         },
       },
       // Count the total documents
@@ -350,6 +356,7 @@ const allCollectedItems = async (req, res, next) => {
       },
     ]);
     const totalCount = items.length > 0 ? items[0].count : 0;
+    console.log(totalCount,items[0].count)
     const paginatedResults = items.length > 0 ? items[0].results : [];
     res
       .status(200)
