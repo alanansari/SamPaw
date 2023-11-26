@@ -33,7 +33,7 @@ if (cluster.isPrimary) {
 } else {
 	const app = express();
 	app.use(fileUpload({
-		useTempFiles:false,
+		useTempFiles:true,
 		limits:{fileSize: 50*1024*1024}
 	  }));
 	
