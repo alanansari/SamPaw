@@ -41,7 +41,7 @@ const createItem = async (req, res, next) => {
             {
               public_id: `${Date.now()}`,
               resource_type: "image",
-              allowed_formats: ["jpg", "png"],
+              allowed_formats: ["jpg", "png","jpeg","gif"],
               folder: "images",
               width: 2000,
               height: 1000,
@@ -53,7 +53,7 @@ const createItem = async (req, res, next) => {
                 return next(
                   new ErrorHandler(
                     500,
-                    "Upload Image Error(ONLY JPG AND PNG ALLOWED)"
+                    "Upload Image Error(ONLY JPG, JPEG, GIF and PNG ALLOWED)"
                   )
                 );
               image = result.secure_url;
